@@ -1,0 +1,4 @@
+include ':app'
+include ':deliverclient'
+include ':deliverserver'
+rootProject.name='TRS'
