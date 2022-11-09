@@ -103,7 +103,7 @@ public class BioPeriodChronicActivity extends AppCompatActivity {
                 try {
                     ServerSocket socket = new ServerSocket(8887);
                     while (true) {
-                        //接受客户端连接
+                        //阻塞接受客户端连接
                         final Socket so = socket.accept();
                         so.setKeepAlive(true);
                         //与客户端通信的工作放到线程池中异步执行
@@ -153,7 +153,7 @@ public class BioPeriodChronicActivity extends AppCompatActivity {
         }
     }
 
-
+    //模拟userAuth用户验证过程：双方按定好的流程，进行几次握手
     private String verifySocketUser(Socket so,InputStream inputStream,OutputStream outputStream) {
         String user = null;
         try {
@@ -173,6 +173,7 @@ public class BioPeriodChronicActivity extends AppCompatActivity {
         return user;
     }
 
+    //数据接收等待线程
     private void handleBIoInputStream(final String user, final InputStream inputStream) {
         new Thread(new Runnable() {
             int contentLength;

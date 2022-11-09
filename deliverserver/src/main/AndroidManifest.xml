@@ -16,13 +16,16 @@
         <activity
             android:name="com.jason.deliverserver.BioPeriodChronicActivity"
             android:exported="true">
+        </activity>
+        <activity android:name="com.jason.deliverserver.MainActivity"
+            android:exported="true">
+        </activity>
+        <activity android:name=".NioPeriodChronicActivity"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name="com.jason.deliverserver.MainActivity"
-            android:exported="true">
         </activity>
     </application>
 
