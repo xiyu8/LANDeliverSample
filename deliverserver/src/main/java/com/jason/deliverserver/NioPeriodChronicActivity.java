@@ -79,6 +79,7 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
                     return;
                 }
                 nioWriteString(sendUser,sendMsg);
+                send_msg_content.setText("");
                 break;
         }
     }
@@ -108,7 +109,6 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
                 if (selectionKey != null) {
                     selectionKey.cancel();
                 }
-                socketChannel.finishConnect();
                 socketChannel.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -126,7 +126,6 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
             if (selectionKey != null) {
                 selectionKey.cancel();
             }
-            socketChannel.finishConnect();
             socketChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -182,6 +181,9 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
                             }
                         }
                     } catch (IOException e) {
+                        if (e.getMessage() != null && e.getMessage().contains("closed")
+                                && e.getMessage().contains("Broken")) {
+                        }
                         e.printStackTrace();
                     }
                 }
@@ -277,20 +279,21 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
                 SocketChannel socketChannel = socketChannels.get(sendUser);
                 if (socketChannel == null) {
                     showError("未找到连接的用户："+sendUser);
+                    return;
                 }
                 if (!socketChannel.isConnected()) {
                     disconnectNioUser(sendUser);
                     showError("用户连接已断开："+sendUser);
+                    return;
                 }
 
                 try {
                     byte[] tempContentBytes = sendMsg.getBytes(("UTF-8"));
                     int contentLength = tempContentBytes.length;
                     byte[] contentLengthBytes = Tool.intToByte4(contentLength);
-                    ByteBuffer contentLengthBytesBuffer = ByteBuffer.wrap(contentLengthBytes);
-                    socketChannel.write(contentLengthBytesBuffer);
-                    ByteBuffer content = ByteBuffer.wrap(tempContentBytes);
-                    socketChannel.write(content);
+                    byte[] totalBytes = Tool.combineBytes(new byte[4 + contentLength], contentLengthBytes, tempContentBytes);
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(totalBytes);
+                    socketChannel.write(byteBuffer);
                 } catch (IOException e) {
                     showError("发送失败：" + e.getCause() + e.getMessage());
                     e.printStackTrace();
