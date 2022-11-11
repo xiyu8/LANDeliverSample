@@ -75,18 +75,16 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
                 if (port.equals("") || host.equals("") || userName.equals("")) {
                     return;
                 }
-                initNioChannel();
+
+
+                registerNIoSelector();
                 initWriteThread();
-                if (mSocketChannel == null) {
-                    showError("创建连接通道失败");
-                    return;
-                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             mSocketChannel.connect(new InetSocketAddress(host, Integer.parseInt(port)));
-                            listenNiOConnect(userName);
+                            listenNioConnect(userName);
                         } catch (IOException e) {
                             if (e.getMessage() != null && e.getMessage().contains("closed")
                                     && e.getMessage().contains("Broken")) {
@@ -120,7 +118,7 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
     Selector selector;
     SocketChannel mSocketChannel;
 
-    public void initNioChannel() {
+    public void registerNIoSelector() {
         try {
             mSocketChannel = SocketChannel.open();
             mSocketChannel.configureBlocking(false);
@@ -134,14 +132,13 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
     }
 
 
-    private void listenNiOConnect(String userName) {
+    private void listenNioConnect(String userName) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
                     try {
                         selector.select();
-                        // 获得selector中选中的项的迭代器
                         Iterator iterator = NioPeriodChronicActivity.this.selector.selectedKeys().iterator();
                         while (iterator.hasNext()) {
                             SelectionKey selectionKey = (SelectionKey) iterator.next();
@@ -294,7 +291,6 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
 
     Thread sendThread;
     Handler sendHandle;
-
     private void initWriteThread() {
         sendThread = new Thread(new Runnable() {
             @Override
@@ -338,6 +334,8 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
     }
 
 
+
+
     private void showData(final String ss) {
         runOnUiThread(new Runnable() {
             @Override
@@ -346,7 +344,6 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
             }
         });
     }
-
 
     private void showConnection(final String ip, final String port, final String user) {
         runOnUiThread(new Runnable() {

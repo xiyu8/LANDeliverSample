@@ -60,7 +60,8 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
         send_user_name.setText("user1");
 
 //        bIoInit();
-        registerNIoSelector();
+        registerNioSelector();
+        initWriteThread(); //prepare write thread
         listenNioSelector();
     }
 
@@ -135,12 +136,12 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
     }
 
     private Selector selector;
-    private void registerNIoSelector() {
+    private void registerNioSelector() {
         try {
             ServerSocketChannel serverChannel = ServerSocketChannel.open();// 获得一个ServerSocket通道
             serverChannel.configureBlocking(false);// 设置通道为非阻塞
-            serverChannel.socket().bind(new InetSocketAddress(8887));// 将该通道对应的ServerSocket绑定到port端口
             NioPeriodChronicActivity.this.selector = Selector.open();// 获得一个通道管理器
+            serverChannel.socket().bind(new InetSocketAddress(8887));// 将该通道对应的ServerSocket绑定到port端口
             //将通道管理器和该通道绑定，并为该通道注册SelectionKey.OP_ACCEPT事件,注册该事件后，
             //当该事件到达时，selector.select()会返回，如果该事件没到达selector.select()会一直阻塞。
             serverChannel.register(selector, SelectionKey.OP_ACCEPT);
@@ -165,17 +166,6 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
                                 SocketChannel socketChannel = serverSocketChannel.accept(); // 获得和客户端连接的通道
                                 socketChannel.configureBlocking(false); // 设置成非阻塞
                                 socketChannel.register(NioPeriodChronicActivity.this.selector, SelectionKey.OP_READ); //在和客户端连接成功之后，为了可以接收到客户端的信息，需要给通道设置读的权限。
-
-                                if (sendThread == null || sendHandle == null) { //prepare write thread
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Looper.prepare();
-                                            sendHandle = new Handler();
-                                            Looper.loop();
-                                        }
-                                    }).start();
-                                }
                             } else if (selectionKey.isReadable()) { // 获得了可读的事件
                                 nIOHandleReadChannel(selectionKey,(SocketChannel) selectionKey.channel());
                             }
@@ -271,6 +261,18 @@ public class NioPeriodChronicActivity extends AppCompatActivity {
 
     Thread sendThread;
     Handler sendHandle;
+    private void initWriteThread() {
+        sendThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                sendHandle = new Handler();
+                Looper.loop();
+            }
+        });
+        sendThread.start();
+    }
+
     private void nioWriteString(final String sendUser,final String sendMsg) {
 
         sendHandle.post(new Runnable() {
